@@ -21,6 +21,7 @@ def SDT_AVRCallSeqStart : SDCallSeqStart<[SDTCisVT<0, i16>]>;
 def SDT_AVRCallSeqEnd : SDCallSeqEnd<[SDTCisVT<0, i16>, SDTCisVT<1, i16>]>;
 def SDT_AVRCall : SDTypeProfile<0, -1, [SDTCisVT<0, iPTR>]>;
 def SDT_AVRWrapper : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>, SDTCisPtrTy<0>]>;
+def SDT_AVRProgMemWrapper : SDTypeProfile<1, 1, [SDTCisSameAs<0, 1>, SDTCisPtrTy<0>]>;
 def SDT_AVRBrcond : SDTypeProfile<0, 2,
                                   [SDTCisVT<0, OtherVT>, SDTCisVT<1, i8>]>;
 def SDT_AVRCmp : SDTypeProfile<0, 2, [SDTCisSameAs<0, 1>]>;
@@ -46,9 +47,12 @@ def AVRcall : SDNode<"AVRISD::CALL", SDT_AVRCall,
                      [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue, SDNPVariadic]>;
 
 def AVRWrapper : SDNode<"AVRISD::WRAPPER", SDT_AVRWrapper>;
+def AVRProgMemWrapper : SDNode<"AVRISD::PROGMEM_WRAPPER", SDT_AVRProgMemWrapper>;
 
 def AVRbrcond : SDNode<"AVRISD::BRCOND", SDT_AVRBrcond,
                        [SDNPHasChain, SDNPInGlue]>;
+def AVRrbrcond : SDNode<"AVRISD::RBRCOND", SDT_AVRBrcond,
+                        [SDNPHasChain, SDNPInGlue]>;
 def AVRcmp : SDNode<"AVRISD::CMP", SDT_AVRCmp, [SDNPOutGlue]>;
 def AVRcmpc : SDNode<"AVRISD::CMPC", SDT_AVRCmp, [SDNPInGlue, SDNPOutGlue]>;
 def AVRtst : SDNode<"AVRISD::TST", SDT_AVRTst, [SDNPOutGlue]>;
@@ -902,10 +906,9 @@ let Defs = [SREG] in
 
   // CPI Rd, K
   // Compares a register with an 8 bit immediate.
-  let Uses = [SREG] in
   def CPIRdK : FRdK<0b0011,
                     (outs),
-                    (ins GPR8:$rd, imm_ldi8:$k),
+                    (ins LD8:$rd, imm_ldi8:$k),
                     "cpi\t$rd, $k",
                     [(AVRcmp i8:$rd, imm:$k), (implicit SREG)]>;
 }
@@ -1022,6 +1025,11 @@ Uses = [SREG] in
                     (ins relbrtarget_7:$target),
                     "breq\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_EQ)]>;
+  def RBREQk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brne\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_EQ)]>;
 
   def BRNEk : FBRsk<1,
                     0b001,
@@ -1029,14 +1037,24 @@ Uses = [SREG] in
                     (ins relbrtarget_7:$target),
                     "brne\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_NE)]>;
+  def RBRNEk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "breq\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_NE)]>;
 
-
+                       
   def BRSHk : FBRsk<1,
                     0b000,
                     (outs),
                     (ins relbrtarget_7:$target),
                     "brsh\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_SH)]>;
+  def RBRSHk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brlo\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_SH)]>;
 
   def BRLOk : FBRsk<0,
                     0b000,
@@ -1044,13 +1062,24 @@ Uses = [SREG] in
                     (ins relbrtarget_7:$target),
                     "brlo\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_LO)]>;
+  def RBRLOk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brsh\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_LO)]>;
 
+                    
   def BRMIk : FBRsk<0,
                     0b010,
                     (outs),
                     (ins relbrtarget_7:$target),
                     "brmi\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_MI)]>;
+  def RBRMIk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brpl\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_MI)]>;
 
   def BRPLk : FBRsk<1,
                     0b010,
@@ -1058,6 +1087,12 @@ Uses = [SREG] in
                     (ins relbrtarget_7:$target),
                     "brpl\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_PL)]>;
+  def RBRPLk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brmi\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_PL)]>;
+                       
 
   def BRGEk : FBRsk<1,
                     0b100,
@@ -1065,13 +1100,24 @@ Uses = [SREG] in
                     (ins relbrtarget_7:$target),
                     "brge\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_GE)]>;
-
+  def RBRGEk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brlt\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRrbrcond bb:$target, AVR_COND_GE)]>;
+  
   def BRLTk : FBRsk<0,
                     0b100,
                     (outs),
                     (ins relbrtarget_7:$target),
                     "brlt\t$target",
                     [(AVRbrcond bb:$target, AVR_COND_LT)]>;
+  def RBRLTk : Pseudo<(outs),
+                       (ins brtarget_13:$target),
+                       "brge\t.+2\n"
+                       "\trjmp\t$target",
+                       [(AVRbrcond bb:$target, AVR_COND_LT)]>;
+  
 }
 
 //===----------------------------------------------------------------------===//
@@ -1153,10 +1199,10 @@ isReMaterializable = 1 in
   //
   // Expands to:
   // ld Rd,   P+
-  // ld Rd+1, P+
+  // ld Rd+1, P
   let Constraints = "@earlyclobber $reg" in
   def LDWRdPtr : Pseudo<(outs DREGS:$reg),
-                        (ins PTRDISPREGS:$ptrreg),
+                        (ins PTRREGS:$ptrreg),
                         "ldw\t$reg, $ptrreg",
                         [(set i16:$reg, (load i16:$ptrreg))]>,
                  Requires<[HasSRAM]>;
@@ -1165,7 +1211,7 @@ isReMaterializable = 1 in
 // Indirect loads (with postincrement or predecrement).
 let mayLoad = 1,
 hasSideEffects = 0,
-Constraints = "$ptrreg = $base_wb,@earlyclobber $reg,@earlyclobber $base_wb" in
+Constraints = "$ptrreg = $base_wb,@earlyclobber $reg" in
 {
   def LDRdPtrPi : FSTLD<0,
                         0b01,
@@ -1398,6 +1444,7 @@ def STDWPtrQRr : Pseudo<(outs),
 // Load program memory operations.
 let canFoldAsLoad = 1,
 isReMaterializable = 1,
+mayLoad = 1,
 hasSideEffects = 0 in
 {
   let Defs = [R0],
@@ -1424,8 +1471,7 @@ hasSideEffects = 0 in
                 Requires<[HasLPMX]>;
 
   // Load program memory, while postincrementing the Z register.
-  let mayLoad = 1,
-  Defs = [R31R30] in
+  let Defs = [R31R30] in
   {
     def LPMRdZPi : FLPMX<0,
                          1,
@@ -1988,6 +2034,11 @@ def Asr16 : ShiftPseudo<
 // Non-Instruction Patterns
 //===----------------------------------------------------------------------===//
 
+def : Pat<(i8 (load (add i16:$offset, (AVRProgMemWrapper tglobaladdr:$base)))),
+          (LPMRdZ (SUBIWRdK i16:$offset, tglobaladdr:$base))>;
+def : Pat<(i16 (load (add i16:$offset, (AVRProgMemWrapper tglobaladdr:$base)))),
+          (LPMWRdZ (SUBIWRdK i16:$offset, tglobaladdr:$base))>;
+
 //:TODO: look in x86InstrCompiler.td for odd encoding trick related to
 // add x, 128 -> sub x, -128. Clang is emitting an eor for this (ldi+eor)
 
@@ -2056,6 +2107,10 @@ def : Pat<(store i8:$src, (i16 (AVRWrapper tglobaladdr:$dst))),
           (STSKRr tglobaladdr:$dst, i8:$src)>;
 def : Pat<(store i16:$src, (i16 (AVRWrapper tglobaladdr:$dst))),
           (STSWKRr tglobaladdr:$dst, i16:$src)>;
+
+// Temporary workaround -- this one is BOGUS!
+def : Pat<(i16 (AVRProgMemWrapper tglobaladdr:$dst)),
+          (LDIWRdK tglobaladdr:$dst)>;
 
 // BlockAddress
 def : Pat<(i16 (AVRWrapper tblockaddress:$dst)),

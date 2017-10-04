@@ -25,7 +25,7 @@
 
 namespace llvm {
 
-static const char *AVRDataLayout = "e-p:16:16:16-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-n8";
+static const char *AVRDataLayout = "e-p:16:8-i8:8-i16:8-i32:8-i64:8-f32:8-f64:8-n8-a:8";
 
 /// Processes a CPU name.
 static StringRef getCPU(StringRef CPU) {
@@ -67,6 +67,7 @@ public:
   bool addInstSelector() override;
   void addPreSched2() override;
   void addPreRegAlloc() override;
+  void addPreEmitPass() override;
 };
 } // namespace
 
@@ -112,6 +113,9 @@ void AVRPassConfig::addPreRegAlloc() {
 
 void AVRPassConfig::addPreSched2() {
   addPass(createAVRRelaxMemPass());
+}
+
+void AVRPassConfig::addPreEmitPass() {
   addPass(createAVRExpandPseudoPass());
 }
 
