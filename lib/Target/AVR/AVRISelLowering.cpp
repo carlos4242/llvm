@@ -236,7 +236,6 @@ const char *AVRTargetLowering::getTargetNodeName(unsigned Opcode) const {
     NODE(RETI_FLAG);
     NODE(CALL);
     NODE(WRAPPER);
-    NODE(PROGMEM_WRAPPER);
     NODE(LSL);
     NODE(LSR);
     NODE(ROL);
@@ -246,7 +245,6 @@ const char *AVRTargetLowering::getTargetNodeName(unsigned Opcode) const {
     NODE(LSRLOOP);
     NODE(ASRLOOP);
     NODE(BRCOND);
-    NODE(RBRCOND);
     NODE(CMP);
     NODE(CMPC);
     NODE(TST);
@@ -382,20 +380,13 @@ SDValue AVRTargetLowering::LowerGlobalAddress(SDValue Op,
                                               SelectionDAG &DAG) const {
   auto DL = DAG.getDataLayout();
 
-  const auto *GA = cast<GlobalAddressSDNode>(Op);
-  const GlobalValue *GV = GA->getGlobal();
-
-  unsigned Wrapper = AVRISD::WRAPPER;
-  if (const auto *GVar = dyn_cast<GlobalVariable>(GV))
-      if (GVar->isConstant())
-          Wrapper = AVRISD::PROGMEM_WRAPPER;
-
+  const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
   int64_t Offset = cast<GlobalAddressSDNode>(Op)->getOffset();
 
   // Create the TargetGlobalAddress node, folding in the constant offset.
   SDValue Result =
       DAG.getTargetGlobalAddress(GV, SDLoc(Op), getPointerTy(DL), Offset);
-  return DAG.getNode(Wrapper, SDLoc(Op), getPointerTy(DL), Result);
+  return DAG.getNode(AVRISD::WRAPPER, SDLoc(Op), getPointerTy(DL), Result);
 }
 
 SDValue AVRTargetLowering::LowerBlockAddress(SDValue Op,
@@ -617,7 +608,7 @@ SDValue AVRTargetLowering::LowerBR_CC(SDValue Op, SelectionDAG &DAG) const {
   SDValue TargetCC;
   SDValue Cmp = getAVRCmp(LHS, RHS, CC, TargetCC, DAG, dl);
 
-  return DAG.getNode(AVRISD::RBRCOND, dl, MVT::Other, Chain, Dest, TargetCC,
+  return DAG.getNode(AVRISD::BRCOND, dl, MVT::Other, Chain, Dest, TargetCC,
                      Cmp);
 }
 
@@ -1479,10 +1470,8 @@ MachineBasicBlock *AVRTargetLowering::insertShift(MachineInstr &MI,
   }
 
   const BasicBlock *LLVM_BB = BB->getBasicBlock();
-
-  MachineFunction::iterator I;
-  for (I = F->begin(); I != F->end() && &(*I) != BB; ++I);
-  if (I != F->end()) ++I;
+  MachineFunction::iterator I = BB->getParent()->begin();
+  ++I;
 
   // Create loop block.
   MachineBasicBlock *LoopBB = F->CreateMachineBasicBlock(LLVM_BB);
@@ -1512,9 +1501,9 @@ MachineBasicBlock *AVRTargetLowering::insertShift(MachineInstr &MI,
   unsigned DstReg = MI.getOperand(0).getReg();
 
   // BB:
-  // cpi N, 0
+  // cp 0, N
   // breq RemBB
-  BuildMI(BB, dl, TII.get(AVR::CPIRdK)).addReg(ShiftAmtSrcReg).addImm(0);
+  BuildMI(BB, dl, TII.get(AVR::CPRdRr)).addReg(ShiftAmtSrcReg).addReg(AVR::R0);
   BuildMI(BB, dl, TII.get(AVR::BREQk)).addMBB(RemBB);
 
   // LoopBB:
@@ -1622,9 +1611,8 @@ AVRTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   MachineBasicBlock *trueMBB = MF->CreateMachineBasicBlock(LLVM_BB);
   MachineBasicBlock *falseMBB = MF->CreateMachineBasicBlock(LLVM_BB);
 
-  MachineFunction::iterator I;
-  for (I = MF->begin(); I != MF->end() && &(*I) != MBB; ++I);
-  if (I != MF->end()) ++I;
+  MachineFunction::iterator I = MBB->getParent()->begin();
+  ++I;
   MF->insert(I, trueMBB);
   MF->insert(I, falseMBB);
 
@@ -2026,3 +2014,4 @@ unsigned AVRTargetLowering::getRegisterByName(const char *RegName,
 }
 
 } // end of namespace llvm
+
