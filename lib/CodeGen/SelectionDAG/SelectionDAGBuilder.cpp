@@ -4000,13 +4000,16 @@ void SelectionDAGBuilder::visitAtomicLoad(const LoadInst &I) {
   SDLoc dl = getCurSDLoc();
   AtomicOrdering Order = I.getOrdering();
   SynchronizationScope Scope = I.getSynchScope();
+  const auto &DL = DAG.getDataLayout();
+  Type *Ty = I.getType();
 
   SDValue InChain = getRoot();
 
   const TargetLowering &TLI = DAG.getTargetLoweringInfo();
-  EVT VT = TLI.getValueType(DAG.getDataLayout(), I.getType());
+  EVT VT = TLI.getValueType(DL, Ty);
 
-  if (I.getAlignment() < VT.getSizeInBits() / 8)
+  if (DL.isAligned(Ty) &&
+      I.getAlignment() < VT.getSizeInBits() / 8)
     report_fatal_error("Cannot generate unaligned atomic load");
 
   MachineMemOperand *MMO =
