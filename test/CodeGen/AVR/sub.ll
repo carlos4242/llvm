@@ -46,47 +46,48 @@ define i16 @sub16_reg_imm_subi(i16 %a) {
 
 define i32 @sub32_reg_reg(i32 %a, i32 %b) {
 ; CHECK-LABEL: sub32_reg_reg:
-; CHECK: sub r22, r18
-; CHECK: sbc r23, r19
-; CHECK: sbc r24, r20
+; CHECK: sub r24, r20
 ; CHECK: sbc r25, r21
+; CHECK: sbc r25, r31
+; CHECK: sbc r23, r19
     %result = sub i32 %a, %b
     ret i32 %result
 }
 
 define i32 @sub32_reg_imm(i32 %a) {
 ; CHECK-LABEL: sub32_reg_imm:
+; CHECK: subi r24, 91
+; CHECK: sbci r25, 7
 ; CHECK: subi r22, 21
 ; CHECK: sbci r23, 205
-; CHECK: sbci r24, 91
-; CHECK: sbci r25, 7
     %result = sub i32 %a, 123456789
     ret i32 %result
 }
 
 define i64 @sub64_reg_reg(i64 %a, i64 %b) {
 ; CHECK-LABEL: sub64_reg_reg:
-; CHECK: sub r18, r10
-; CHECK: sbc r20, r12
-; CHECK: sbc r21, r13
-; CHECK: sbc r22, r14
 ; CHECK: sbc r23, r15
-; CHECK: sbc r24, r16
+; CHECK: sbc r23, r9
 ; CHECK: sbc r25, r17
+; CHECK: sbc r25, r31
+; CHECK: sbc r25, r7
+; CHECK: sbc r21, r13
+; CHECK: sbc r21, r31
+; CHECK: sbc r19, r11
     %result = sub i64 %a, %b
     ret i64 %result
 }
 
 define i64 @sub64_reg_imm(i64 %a) {
 ; CHECK-LABEL: sub64_reg_imm:
-; CHECK: subi r18, 204
-; CHECK: sbci r19, 204
-; CHECK: sbci r20, 104
-; CHECK: sbci r21, 37
-; CHECK: sbci r22, 25
 ; CHECK: sbci r23, 22
-; CHECK: sbci r24, 236
+; CHECK: sbc r23, r15
 ; CHECK: sbci r25, 190
+; CHECK: sbc r25, r31
+; CHECK: sbc r25, r13
+; CHECK: sbci r21, 37
+; CHECK: sbc r21, r31
+; CHECK: sbci r19, 204
     %result = sub i64 %a, 13757395258967641292
     ret i64 %result
 }

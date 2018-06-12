@@ -47,9 +47,9 @@ define i16 @add16_reg_imm_subi(i16 %a) {
 
 define i32 @add32_reg_reg(i32 %a, i32 %b) {
 ; CHECK-LABEL: add32_reg_reg:
-; CHECK: add r22, r18
-; CHECK: adc r23, r19
-; CHECK: adc r24, r20
+; CHECK: add r24, r20
+; CHECK: adc r25, r21
+; CHECK: adc r19, r23
 ; CHECK: adc r25, r21
     %result = add i32 %a, %b
     ret i32 %result
@@ -57,37 +57,39 @@ define i32 @add32_reg_reg(i32 %a, i32 %b) {
 
 define i32 @add32_reg_imm(i32 %a) {
 ; CHECK-LABEL: add32_reg_imm:
-; CHECK: subi r22, 251
-; CHECK: sbci r23, 255
-; CHECK: sbci r24, 255
-; CHECK: sbci r25, 255
+; CHECK: adiw r24, 1
+; CHECK: sub r24, r18
+; CHECK: sbc r25, r19
+; CHECK: adiw r30, 5
     %result = add i32 %a, 5
     ret i32 %result
 }
 
 define i64 @add64_reg_reg(i64 %a, i64 %b) {
 ; CHECK-LABEL: add64_reg_reg:
-; CHECK: add r18, r10
-; CHECK: adc r20, r12
-; CHECK: adc r21, r13
-; CHECK: adc r22, r14
-; CHECK: adc r23, r15
-; CHECK: adc r24, r16
+; CHECK: add r14, r22
+; CHECK: adc r15, r23
+; CHECK: adc r13, r21
+; CHECK: adc r11, r19
 ; CHECK: adc r25, r17
+; CHECK: adc r13, r27
+; CHECK: adc r25, r23
+; CHECK: adc r23, r15
+; CHECK: adc r25, r19
     %result = add i64 %a, %b
     ret i64 %result
 }
 
 define i64 @add64_reg_imm(i64 %a) {
 ; CHECK-LABEL: add64_reg_imm:
-; CHECK: subi r18, 251
-; CHECK: sbci r19, 255
-; CHECK: sbci r20, 255
-; CHECK: sbci r21, 255
-; CHECK: sbci r22, 255
-; CHECK: sbci r23, 255
-; CHECK: sbci r24, 255
-; CHECK: sbci r25, 255
+; CHECK: sub r26, r16
+; CHECK: sbc r27, r17
+; CHECK: sub r24, r22
+; CHECK: sbc r25, r23
+; CHECK: sub r24, r14
+; CHECK: sbc r25, r15
+; CHECK: sub r30, r18
+; CHECK: sbc r31, r19
     %result = add i64 %a, 5
     ret i64 %result
 }
