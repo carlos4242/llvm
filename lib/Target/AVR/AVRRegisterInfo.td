@@ -157,6 +157,18 @@ def DREGS : RegisterClass<"AVR", [i16], 8,
     R9R8, R7R6, R5R4, R3R2, R1R0
   )>;
 
+// Main 16-bit pair register class.
+def DREGS_WITHOUT_Z : RegisterClass<"AVR", [i16], 8,
+  (
+    // Return value and arguments.
+    add R25R24, R19R18, R21R20, R23R22,
+    // Scratch registers.
+    R27R26,
+    // Callee saved registers.
+    R29R28, R17R16, R15R14, R13R12, R11R10,
+    R9R8, R7R6, R5R4, R3R2, R1R0
+  )>;
+
 // 16-bit register class for immediate instructions.
 def DLDREGS : RegisterClass<"AVR", [i16], 8,
   (

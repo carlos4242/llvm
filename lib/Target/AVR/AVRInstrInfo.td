@@ -832,7 +832,7 @@ let isCall = 1 in
 //===----------------------------------------------------------------------===//
 let isTerminator = 1,
 isReturn = 1,
-isBarrier = 1 in 
+isBarrier = 1 in
 {
   def RET : F16<0b1001010100001000,
                 (outs),
@@ -1222,7 +1222,7 @@ isReMaterializable = 1 in
   // ldd Rd,   P+q
   // ldd Rd+1, P+q+1
   let Constraints = "@earlyclobber $dst" in
-  def LDDWRdPtrQ : Pseudo<(outs DREGS:$dst),
+  def LDDWRdPtrQ : Pseudo<(outs DREGS_WITHOUT_Z:$dst),
                           (ins memri:$memri),
                           "lddw\t$dst, $memri",
                           [(set i16:$dst, (load addr:$memri))]>,
