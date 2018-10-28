@@ -836,6 +836,12 @@ public:
                                    SmallVectorImpl<const SDNode *> &Worklist,
                                    unsigned int MaxSteps = 0,
                                    bool TopologicalPrune = false) {
+    // NOTE(TimNN): I'm not confident that the in-progress D53106 actually
+    //              handles the topological ordering correctly, so I'm disabling
+    //              this performance optimization until the upstream patch has
+    //              been accepted.
+    TopologicalPrune = false;
+
     SmallVector<const SDNode *, 8> DeferredNodes;
     if (Visited.count(N))
       return true;
@@ -867,6 +873,14 @@ public:
       }
       for (const SDValue &OpV : M->op_values()) {
         SDNode *Op = OpV.getNode();
+        // If we are adding a glued node, its glued user should be considered a
+        // predecessor as well to prevent a node merge causing a non-immediate
+        // use of a glue operand. Walk down all unvisited glue users.
+        while (auto *GN = Op->getGluedUser()) {
+          if ((GN == M) || Visited.count(GN))
+            break;
+          Op = GN;
+        }
         if (Visited.insert(Op).second)
           Worklist.push_back(Op);
         if (Op == N)
