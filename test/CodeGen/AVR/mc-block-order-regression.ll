@@ -13,18 +13,7 @@ target triple = "x86_64-apple-macosx10.9"
 @_Tv4main7delayUsVs6UInt32 = hidden local_unnamed_addr global %Vs6UInt32 zeroinitializer, align 4
 @_Tv4main7enabledSb = hidden local_unnamed_addr global %Sb zeroinitializer, align 1
 
-; Function Attrs: noreturn
-define i32 @main(i32, i8** nocapture readnone) local_unnamed_addr #0 {
-entry:
-  tail call void @_TF3AVR36i2cSlaveSetupRegisterReceiveCallbackFT8callbackcTVs5UInt8S0__T__T_(i8* bitcast (void (i8, i8)* @_TToF4mainU_FTVs5UInt8S0__T_ to i8*))
-  br label %2
-
-; <label>:2:                                     ; preds = %2, %entry
-  br label %2
-}
-
 declare void @_TF3AVR11writeEEPROMFT7addressVs6UInt165valueVs5UInt8_T_(i16, i8) local_unnamed_addr #1
-declare void @_TF3AVR36i2cSlaveSetupRegisterReceiveCallbackFT8callbackcTVs5UInt8S0__T__T_(i8*) local_unnamed_addr #1
 
 ; CHECK-LABEL: _TF4main9i2cUpdateFT8registerVs5UInt85valueS0__T_
 define hidden void @_TF4main9i2cUpdateFT8registerVs5UInt85valueS0__T_(i8, i8) local_unnamed_addr #1 {
@@ -69,19 +58,6 @@ entry:
 ; <label>:9:                                      ; preds = %8, %2, %entry
   ; CHECK: pop [[PRELUDER]]
   ; CHECK-NEXT: ret
-  ; CHECK-NEXT: .Lfunc_end
   ret void
 }
-
-; CHECK-LABEL: _TF4main11updateDelayFVs5UInt8T_
-define hidden void @_TF4main11updateDelayFVs5UInt8T_(i8) local_unnamed_addr #1 {
-entry:
-  store i8 %0, i8* getelementptr inbounds (%Vs5UInt8, %Vs5UInt8* @_Tv4main11delayFactorVs5UInt8, i64 0, i32 0), align 1
-  ret void
-}
-
-define linkonce_odr hidden void @_TToF4mainU_FTVs5UInt8S0__T_(i8 zeroext, i8 zeroext) #1 {
-entry:
-  tail call void @_TF4main9i2cUpdateFT8registerVs5UInt85valueS0__T_(i8 %0, i8 %1) #3
-  ret void
-}
+; CHECK-LABEL: .Lfunc_end0
