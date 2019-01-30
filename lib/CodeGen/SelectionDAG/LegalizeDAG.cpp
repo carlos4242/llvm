@@ -3398,7 +3398,7 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
       // being a legal type for the architecture and thus has to be split to
       // two arguments.
       SDValue Ret;
-      if(DAG.getDataLayout().isLittleEndian()) {
+      if(DAG.getDataLayout().isABILittleEndian()) {
         // Halves of WideVT are packed into registers in different order
         // depending on platform endianness. This is usually handled by
         // the C calling convention, but we can't defer to it in

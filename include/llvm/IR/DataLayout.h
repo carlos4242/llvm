@@ -116,6 +116,7 @@ private:
   unsigned AllocaAddrSpace;
   unsigned StackNaturalAlign;
   unsigned ProgramAddrSpace;
+  bool ABIBigEndian;
 
   enum ManglingModeT {
     MM_None,
@@ -220,6 +221,9 @@ public:
   /// Layout endianness...
   bool isLittleEndian() const { return !BigEndian; }
   bool isBigEndian() const { return BigEndian; }
+
+  bool isABILittleEndian() const { return !ABIBigEndian; }
+  bool isABIBigEndian() const { return ABIBigEndian; }
 
   /// Returns the string representation of the DataLayout.
   ///

@@ -182,6 +182,7 @@ void DataLayout::reset(StringRef Desc) {
 
   LayoutMap = nullptr;
   BigEndian = false;
+  ABIBigEndian = false;
   AllocaAddrSpace = 0;
   StackNaturalAlign = 0;
   ProgramAddrSpace = 0;
@@ -269,6 +270,7 @@ void DataLayout::parseSpecifier(StringRef Desc) {
       break;
     case 'E':
       BigEndian = true;
+      ABIBigEndian = true;
       break;
     case 'e':
       BigEndian = false;
@@ -388,6 +390,9 @@ void DataLayout::parseSpecifier(StringRef Desc) {
       AllocaAddrSpace = getAddrSpace(Tok);
       break;
     }
+    case 'K':
+      ABIBigEndian = true;
+      break;
     case 'm':
       if (!Tok.empty())
         report_fatal_error("Unexpected trailing characters after mangling specifier in datalayout string");
