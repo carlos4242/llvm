@@ -1307,32 +1307,37 @@ SDValue AVRTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                          InVals);
 }
 
-/// Reverse splitted return values to get the "big endian" format required
-/// to agree with the calling convention ABI.
-static void ReverseArgumentsToBigEndian(MachineFunction &MF,
-                                        SmallVector<CCValAssign, 16> &RVLocs) {
-  if (RVLocs.size() > 1) {
-    // Some hackery because SelectionDAGBuilder does not split
-    // up arguments properly
-    Type *retType = MF.getFunction().getReturnType();
-    if (retType->isStructTy()) {
-      if (retType->getNumContainedTypes() > 1 &&
-          retType->getNumContainedTypes() > RVLocs.size()) {
-        for (unsigned i = 0, pos = 0;
-            i < retType->getNumContainedTypes(); ++i) {
-          Type *field = retType->getContainedType(i);
-          if(field->isIntegerTy() && field->getIntegerBitWidth() > 16) {
-            int Size = field->getIntegerBitWidth() / 16;
-            std::reverse(RVLocs.begin()+ pos, RVLocs.end() + pos + Size);
-            pos += Size;
-          } else {
-            pos++;
-          }
+/// Reverse splitted return values to "big endian" order
+/// so that when registers are assigned from standard CConv
+/// we end up with the format required
+/// to agree with the avr-gcc calling convention ABI.
+/// https://gcc.gnu.org/wiki/avr-gcc
+static void ReverseReturnValuePartsToEnsureLittleEndian(
+  MachineFunction &MF,
+  SmallVector<CCValAssign, 16> &RVLocs) {
+
+  // Some hackery because SelectionDAGBuilder does not split
+  // up arguments properly
+  Type *retType = MF.getFunction().getReturnType();
+  if (retType->isStructTy()) {
+    // For structs we need more advanced rearrangement.
+    if (retType->getNumContainedTypes() > 1 &&
+        retType->getNumContainedTypes() > RVLocs.size()) {
+      for (unsigned i = 0, pos = 0;
+          i < retType->getNumContainedTypes(); ++i) {
+        Type *field = retType->getContainedType(i);
+        if(field->isIntegerTy() && field->getIntegerBitWidth() > 16) {
+          int Size = field->getIntegerBitWidth() / 16;
+          std::reverse(RVLocs.begin()+ pos, RVLocs.end() + pos + Size);
+          pos += Size;
+        } else {
+          pos++;
         }
       }
-    } else {
-      std::reverse(RVLocs.begin(), RVLocs.end());
     }
+  } else {
+    // For scalar type returns, a simple reversal is fine.
+    std::reverse(RVLocs.begin(), RVLocs.end());
   }
 }
 
@@ -1352,6 +1357,11 @@ SDValue AVRTargetLowering::LowerCallResult(
   // Handle runtime calling convs.
   auto CCFunction = CCAssignFnForReturn(CallConv);
   CCInfo.AnalyzeCallResult(Ins, CCFunction);
+
+  if (CallConv != CallingConv::AVR_BUILTIN && RVLocs.size() > 1) {
+    ReverseReturnValuePartsToEnsureLittleEndian(
+      DAG.getMachineFunction(), RVLocs);
+  }
 
   // Copy all of the result registers out of their specified physreg.
   for (CCValAssign const &RVLoc : RVLocs) {
@@ -1411,14 +1421,16 @@ AVRTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
   // If this is the first return lowered for this function, add the regs to
   // the liveout set for the function.
   MachineFunction &MF = DAG.getMachineFunction();
-  unsigned e = RVLocs.size();
 
-  // Reverse splitted return values to get the "big endian" format required
-  // to agree with the calling convention ABI.
-  ReverseArgumentsToBigEndian(MF, RVLocs);
+  if (RVLocs.size() > 1) {
+    // Reverse splitted return values to get the "big endian" format required
+    // to agree with the calling convention ABI.
+    ReverseReturnValuePartsToEnsureLittleEndian(MF, RVLocs);
+  }
 
   SDValue Flag;
   SmallVector<SDValue, 4> RetOps(1, Chain);
+  unsigned e = RVLocs.size();
   // Copy the result values into the output registers.
   for (unsigned i = 0; i != e; ++i) {
     CCValAssign &VA = RVLocs[i];
