@@ -84,6 +84,11 @@ define i16 @global16_load() {
 define void @array16_store() {
 ; CHECK-LABEL: array16_store:
 
+; CHECK: ldi [[REG1:r[0-9]+]], 221
+; CHECK: ldi [[REG2:r[0-9]+]], 170
+; CHECK: sts int.array+5, [[REG2]]
+; CHECK: sts int.array+4, [[REG1]]
+
 ; CHECK: ldi [[REG1:r[0-9]+]], 204
 ; CHECK: ldi [[REG2:r[0-9]+]], 170
 ; CHECK: sts int.array+3, [[REG2]]
@@ -94,11 +99,6 @@ define void @array16_store() {
 ; CHECK: sts int.array+1, [[REG2]]
 ; CHECK: sts int.array, [[REG1]]
 
-
-; CHECK: ldi [[REG1:r[0-9]+]], 221
-; CHECK: ldi [[REG2:r[0-9]+]], 170
-; CHECK: sts int.array+5, [[REG2]]
-; CHECK: sts int.array+4, [[REG1]]
   store i16 43707, i16* getelementptr inbounds ([3 x i16], [3 x i16]* @int.array, i32 0, i64 0)
   store i16 43724, i16* getelementptr inbounds ([3 x i16], [3 x i16]* @int.array, i32 0, i64 1)
   store i16 43741, i16* getelementptr inbounds ([3 x i16], [3 x i16]* @int.array, i32 0, i64 2)
@@ -152,6 +152,14 @@ define i32 @global32_load() {
 
 define void @array32_store() {
 ; CHECK-LABEL: array32_store:
+; CHECK: ldi [[REG1:r[0-9]+]], 170
+; CHECK: ldi [[REG2:r[0-9]+]], 153
+; CHECK: sts long.array+11, [[REG2]]
+; CHECK: sts long.array+10, [[REG1]]
+; CHECK: ldi [[REG1:r[0-9]+]], 204
+; CHECK: ldi [[REG2:r[0-9]+]], 187
+; CHECK: sts long.array+9, [[REG2]]
+; CHECK: sts long.array+8, [[REG1]]
 ; CHECK: ldi [[REG1:r[0-9]+]], 102
 ; CHECK: ldi [[REG2:r[0-9]+]], 85
 ; CHECK: sts long.array+7, [[REG2]]
@@ -168,14 +176,6 @@ define void @array32_store() {
 ; CHECK: ldi [[REG2:r[0-9]+]], 13
 ; CHECK: sts long.array+1, [[REG2]]
 ; CHECK: sts long.array, [[REG1]]
-; CHECK: ldi [[REG1:r[0-9]+]], 170
-; CHECK: ldi [[REG2:r[0-9]+]], 153
-; CHECK: sts long.array+11, [[REG2]]
-; CHECK: sts long.array+10, [[REG1]]
-; CHECK: ldi [[REG1:r[0-9]+]], 204
-; CHECK: ldi [[REG2:r[0-9]+]], 187
-; CHECK: sts long.array+9, [[REG2]]
-; CHECK: sts long.array+8, [[REG1]]
   store i32 2887454020, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @long.array, i32 0, i64 0)
   store i32 1432778632, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @long.array, i32 0, i64 1)
   store i32 2578103244, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @long.array, i32 0, i64 2)
