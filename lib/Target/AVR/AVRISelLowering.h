@@ -131,7 +131,7 @@ public:
 
   bool functionArgumentsSplitLittleEndian(const DataLayout &DL)
     const override {
-      return false;
+    return false;
   }
 
 private:

@@ -6,7 +6,7 @@ target triple = "x86_64-apple-macosx10.9"
 %Vs6UInt16 = type <{ i16 }>
 %Sb = type <{ i1 }>
 
-define hidden void @_TF4main13setServoAngleFT5angleVs6UInt16_T_(i16) #0 {
+define hidden void @setServoAngle(i16) #0 {
   ; CHECK-LABEL: entry
 entry:
   %adjustedAngle = alloca %Vs6UInt16, align 2
@@ -35,15 +35,15 @@ entry:
   %5 = extractvalue { i16, i1 } %3, 1
 
   ; above code looks fine, how is it lowered?
-  %6 = call i1 @_TIF3AVR5printFT11unsignedIntVs6UInt1610addNewlineSb_T_A0_()
-  call void @_TF3AVR5printFT11unsignedIntVs6UInt1610addNewlineSb_T_(i16 %4, i1 %6)
+  %6 = call i1 @printDefaultParam()
+  call void @print(i16 %4, i1 %6)
 
 ; CHECK: ret
   ret void
 }
 
-declare void @_TF3AVR5printFT11unsignedIntVs6UInt1610addNewlineSb_T_(i16, i1) #0
-declare i1 @_TIF3AVR5printFT11unsignedIntVs6UInt1610addNewlineSb_T_A0_() #0
+declare void @print(i16, i1) #0
+declare i1 @printDefaultParam() #0
 
 ; Function Attrs: nounwind readnone speculatable
 declare { i16, i1 } @llvm.umul.with.overflow.i16(i16, i16) #2
