@@ -1430,9 +1430,9 @@ AVRTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
 
   SDValue Flag;
   SmallVector<SDValue, 4> RetOps(1, Chain);
-  unsigned e = RVLocs.size();
+  unsigned numberOfReturnParts = RVLocs.size();
   // Copy the result values into the output registers.
-  for (unsigned i = 0; i != e; ++i) {
+  for (unsigned i = 0; i != numberOfReturnParts; ++i) {
     CCValAssign &VA = RVLocs[i];
     assert(VA.isRegLoc() && "Can only return in registers!");
 
