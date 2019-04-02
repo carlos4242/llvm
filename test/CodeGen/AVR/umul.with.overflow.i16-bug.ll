@@ -6,7 +6,7 @@ target triple = "x86_64-apple-macosx10.9"
 %Vs6UInt16 = type <{ i16 }>
 %Sb = type <{ i1 }>
 
-define hidden void @setServoAngle(i16) #0 {
+define hidden void @setServoAngle(i16) {
   ; CHECK-LABEL: entry
 entry:
   %adjustedAngle = alloca %Vs6UInt16, align 2
@@ -42,11 +42,8 @@ entry:
   ret void
 }
 
-declare void @print(i16, i1) #0
-declare i1 @printDefaultParam() #0
+declare void @print(i16, i1)
+declare i1 @printDefaultParam()
 
 ; Function Attrs: nounwind readnone speculatable
-declare { i16, i1 } @llvm.umul.with.overflow.i16(i16, i16) #2
-
-attributes #0 = { "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "target-cpu"="core2" "target-features"="+ssse3,+cx16,+fxsr,+mmx,+x87,+sse,+sse2,+sse3" }
-attributes #2 = { nounwind readnone speculatable }
+declare { i16, i1 } @llvm.umul.with.overflow.i16(i16, i16)

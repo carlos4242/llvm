@@ -129,7 +129,7 @@ public:
   unsigned getRegisterByName(const char* RegName, EVT VT,
                              SelectionDAG &DAG) const override;
 
-  bool functionArgumentsSplitLittleEndian(const DataLayout &DL)
+  bool shouldSplitFunctionArgumentsAsLittleEndian(const DataLayout &DL)
     const override {
     return false;
   }
