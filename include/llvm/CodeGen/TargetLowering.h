@@ -3363,7 +3363,7 @@ public:
   /// but for some platform that would break. So this method will default to
   /// matching the endianness but can be overridden.
   virtual bool
-  functionArgumentsSplitLittleEndian(const DataLayout &DL) const {
+  shouldSplitFunctionArgumentsAsLittleEndian(const DataLayout &DL) const {
     return DL.isLittleEndian();
   }
 
