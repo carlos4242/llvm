@@ -38,7 +38,7 @@ const uint16_t *
 AVRRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
   const AVRMachineFunctionInfo *AFI = MF->getInfo<AVRMachineFunctionInfo>();
 
-  return AFI->isInterruptHandler()
+  return AFI->isInterruptOrSignalHandler()
               ? CSR_Interrupts_SaveList
               : CSR_Normal_SaveList;
 }
@@ -48,7 +48,7 @@ AVRRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
                                       CallingConv::ID CC) const {
   const AVRMachineFunctionInfo *AFI = MF.getInfo<AVRMachineFunctionInfo>();
 
-  return AFI->isInterruptHandler()
+  return AFI->isInterruptOrSignalHandler()
               ? CSR_Interrupts_RegMask
               : CSR_Normal_RegMask;
 }
